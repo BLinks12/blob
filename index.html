@@ -128,6 +128,31 @@
             cursor: not-allowed;
         }
 
+        .generate-button.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .generate-button.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: button-loading 0.8s linear infinite;
+        }
+
+        @keyframes button-loading {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         #blob-container {
             width: 300px;
             height: 300px;
@@ -749,6 +774,7 @@
         function generateBlob() {
             const username = document.getElementById('usernameInput').value.trim().toLowerCase();
             const warningText = document.getElementById('warningText');
+            const generateButton = document.getElementById('generateButton');
             
             if (!username) {
                 warningText.textContent = 'Enter your X username first!';
@@ -774,124 +800,132 @@
                 return;
             }
 
-            warningText.classList.remove('visible');
-            currentBlobUsername = username;
+            // Add loading state
+            generateButton.classList.add('loading');
+            generateButton.disabled = true;
 
-            // Store this generation
-            generatedBlobs[username] = true;
-            localStorage.setItem('generatedBlobs', JSON.stringify(generatedBlobs));
-            localStorage.setItem('currentBlobUser', username);
-
-            // Show username
-            document.getElementById('usernameDisplay').textContent = `@${username}'s eternal Blob #${hashCode(username).toString().slice(0, 6)}`;
-
-            // Disable input and button
-            document.getElementById('usernameInput').disabled = true;
-            document.getElementById('generateButton').disabled = true;
-
-            // Clear previous blob
-            if (blob) {
-                scene.remove(blob);
-                geometry.dispose();
-                material.dispose();
-            }
-
-            // Cancel previous animation
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-
-            // Generate deterministic parameters from username
-            const hash = hashCode(username);
-            const seed1 = seededRandom(hash);
-            const seed2 = seededRandom(hash * 2);
-            const seed3 = seededRandom(hash * 3);
-            const seed4 = seededRandom(hash * 4);
-            const seed5 = seededRandom(hash * 5);
-
-            // Calculate rarity
-            blobRarity = calculateRarity(hash);
-
-            // Blob parameters based on username with rarity influence
-            const sizeMultiplier = blobRarity.size.tier === 'legendary' ? 1.3 : 
-                                  blobRarity.size.tier === 'epic' ? 1.2 : 
-                                  blobRarity.size.tier === 'rare' ? 1.1 : 1.0;
-            
-            const fluidityMultiplier = blobRarity.fluidity.tier === 'legendary' ? 1.5 : 
-                                       blobRarity.fluidity.tier === 'epic' ? 1.3 : 
-                                       blobRarity.fluidity.tier === 'rare' ? 1.15 : 1.0;
-
-            blobParams = {
-                noiseScale: (seed1 * 0.3 + 0.2) * fluidityMultiplier,
-                timeScale: (seed2 * 0.0005 + 0.0003) * fluidityMultiplier,
-                amplitude: (seed3 * 0.3 + 0.2) * fluidityMultiplier,
-                rotationSpeed: {
-                    x: seed4 * 0.006 + 0.001,
-                    y: seed5 * 0.006 + 0.001
-                },
-                segments: Math.floor(seed1 * 16) + 24,
-                size: sizeMultiplier
-            };
-
-            // Create new geometry with size multiplier
-            geometry = new THREE.SphereGeometry(1 * blobParams.size, blobParams.segments, blobParams.segments);
-            const positions = geometry.attributes.position.array;
-            originalPositions = new Float32Array(positions);
-
-            // Create material with color based on username
-            const hue = seed1;
-            const saturation = blobRarity.color.tier === 'legendary' ? 0.9 : 
-                              blobRarity.color.tier === 'epic' ? 0.8 : 
-                              blobRarity.color.tier === 'rare' ? 0.7 : 
-                              seed2 * 0.4 + 0.5;
-            const lightness = seed3 * 0.2 + 0.4;
-
-            material = new THREE.MeshPhongMaterial({
-                color: new THREE.Color().setHSL(hue, saturation, lightness),
-                shininess: blobRarity.color.tier === 'legendary' ? 200 : 100,
-                specular: blobRarity.color.tier === 'legendary' ? 0x444444 : 0x222222,
-                emissive: blobRarity.hasGlow ? new THREE.Color().setHSL(hue, saturation, lightness * 0.3) : 0x000000,
-                emissiveIntensity: blobRarity.hasGlow ? 0.3 : 0
-            });
-
-            blob = new THREE.Mesh(geometry, material);
-            scene.add(blob);
-
-            // Add glow effect for rare blobs
-            if (blobRarity.hasGlow) {
-                const glowElement = document.getElementById('blobGlow');
-                const glowColor = `hsl(${hue * 360}, ${saturation * 100}%, ${lightness * 100}%)`;
-                glowElement.style.background = `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`;
-                glowElement.style.filter = 'blur(20px)';
-                glowElement.classList.add('active');
-            }
-
-            // Create particle effects
-            createParticles(container);
-
-            // Show container and rarity info
-            container.classList.add('visible');
-            
-            // Display rarity traits
+            // Simulate loading delay
             setTimeout(() => {
-                const rarityDisplay = document.getElementById('rarityDisplay');
-                
-                document.getElementById('rarityTrait1').innerHTML = 
-                    `<span class="${blobRarity.color.tier}">${blobRarity.color.description}</span>`;
-                
-                document.getElementById('rarityTrait2').innerHTML = 
-                    `<span class="${blobRarity.fluidity.tier}">${blobRarity.fluidity.description}!</span>`;
-                
-                document.getElementById('rarityTrait3').innerHTML = 
-                    `<span class="${blobRarity.size.tier}">${blobRarity.size.description}</span>`;
-                
-                rarityDisplay.classList.add('visible');
-            }, 1000);
-            // Show action buttons
-            document.getElementById('actionButtons').classList.add('visible');
+                warningText.classList.remove('visible');
+                currentBlobUsername = username;
 
-            // Start animation
-            animate();
+                // Store this generation
+                generatedBlobs[username] = true;
+                localStorage.setItem('generatedBlobs', JSON.stringify(generatedBlobs));
+                localStorage.setItem('currentBlobUser', username);
+
+                // Show username
+                document.getElementById('usernameDisplay').textContent = `@${username}'s eternal Blob #${hashCode(username).toString().slice(0, 6)}`;
+
+                // Disable input and button
+                document.getElementById('usernameInput').disabled = true;
+                generateButton.disabled = true;
+                generateButton.classList.remove('loading');
+
+                // Clear previous blob
+                if (blob) {
+                    scene.remove(blob);
+                    geometry.dispose();
+                    material.dispose();
+                }
+
+                // Cancel previous animation
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+
+                // Generate deterministic parameters from username
+                const hash = hashCode(username);
+                const seed1 = seededRandom(hash);
+                const seed2 = seededRandom(hash * 2);
+                const seed3 = seededRandom(hash * 3);
+                const seed4 = seededRandom(hash * 4);
+                const seed5 = seededRandom(hash * 5);
+
+                // Calculate rarity
+                blobRarity = calculateRarity(hash);
+
+                // Blob parameters based on username with rarity influence
+                const sizeMultiplier = blobRarity.size.tier === 'legendary' ? 1.3 : 
+                                      blobRarity.size.tier === 'epic' ? 1.2 : 
+                                      blobRarity.size.tier === 'rare' ? 1.1 : 1.0;
+                
+                const fluidityMultiplier = blobRarity.fluidity.tier === 'legendary' ? 1.5 : 
+                                           blobRarity.fluidity.tier === 'epic' ? 1.3 : 
+                                           blobRarity.fluidity.tier === 'rare' ? 1.15 : 1.0;
+
+                blobParams = {
+                    noiseScale: (seed1 * 0.3 + 0.2) * fluidityMultiplier,
+                    timeScale: (seed2 * 0.0005 + 0.0003) * fluidityMultiplier,
+                    amplitude: (seed3 * 0.3 + 0.2) * fluidityMultiplier,
+                    rotationSpeed: {
+                        x: seed4 * 0.006 + 0.001,
+                        y: seed5 * 0.006 + 0.001
+                    },
+                    segments: Math.floor(seed1 * 16) + 24,
+                    size: sizeMultiplier
+                };
+
+                // Create new geometry with size multiplier
+                geometry = new THREE.SphereGeometry(1 * blobParams.size, blobParams.segments, blobParams.segments);
+                const positions = geometry.attributes.position.array;
+                originalPositions = new Float32Array(positions);
+
+                // Create material with color based on username
+                const hue = seed1;
+                const saturation = blobRarity.color.tier === 'legendary' ? 0.9 : 
+                                  blobRarity.color.tier === 'epic' ? 0.8 : 
+                                  blobRarity.color.tier === 'rare' ? 0.7 : 
+                                  seed2 * 0.4 + 0.5;
+                const lightness = seed3 * 0.2 + 0.4;
+
+                material = new THREE.MeshPhongMaterial({
+                    color: new THREE.Color().setHSL(hue, saturation, lightness),
+                    shininess: blobRarity.color.tier === 'legendary' ? 200 : 100,
+                    specular: blobRarity.color.tier === 'legendary' ? 0x444444 : 0x222222,
+                    emissive: blobRarity.hasGlow ? new THREE.Color().setHSL(hue, saturation, lightness * 0.3) : 0x000000,
+                    emissiveIntensity: blobRarity.hasGlow ? 0.3 : 0
+                });
+
+                blob = new THREE.Mesh(geometry, material);
+                scene.add(blob);
+
+                // Add glow effect for rare blobs
+                if (blobRarity.hasGlow) {
+                    const glowElement = document.getElementById('blobGlow');
+                    const glowColor = `hsl(${hue * 360}, ${saturation * 100}%, ${lightness * 100}%)`;
+                    glowElement.style.background = `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`;
+                    glowElement.style.filter = 'blur(20px)';
+                    glowElement.classList.add('active');
+                }
+
+                // Create particle effects
+                createParticles(container);
+
+                // Show container and rarity info
+                container.classList.add('visible');
+                
+                // Display rarity traits
+                setTimeout(() => {
+                    const rarityDisplay = document.getElementById('rarityDisplay');
+                    
+                    document.getElementById('rarityTrait1').innerHTML = 
+                        `<span class="${blobRarity.color.tier}">${blobRarity.color.description}</span>`;
+                    
+                    document.getElementById('rarityTrait2').innerHTML = 
+                        `<span class="${blobRarity.fluidity.tier}">${blobRarity.fluidity.description}!</span>`;
+                    
+                    document.getElementById('rarityTrait3').innerHTML = 
+                        `<span class="${blobRarity.size.tier}">${blobRarity.size.description}</span>`;
+                    
+                    rarityDisplay.classList.add('visible');
+                }, 1000);
+                // Show action buttons
+                document.getElementById('actionButtons').classList.add('visible');
+
+                // Start animation
+                animate();
+            }, 1000);
         }
 
         // Animation
