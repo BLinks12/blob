@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$BLOB - Your Unique On-Chain Identity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,0.02) 0%, transparent 50%);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .logo-wrapper {
+            position: fixed;
+            top: 20px;
+            left: 40px;
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        main {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: clamp(60px, 15vw, 120px);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            margin-bottom: 20px;
+            color: #000;
+            line-height: 1;
+        }
+
+        .tagline {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #999;
+            font-style: italic;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+
+        .username-input {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 16px;
+            width: 250px;
+            transition: border-color 0.3s ease;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .username-input:disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        .generate-button {
+            padding: 12px 30px;
+            border: 2px solid #000;
+            background-color: #000;
+            color: #fff;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .generate-button:hover:not(:disabled) {
+            background-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .generate-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #blob-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin: 20px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #blob-container.visible {
+            opacity: 1;
+        }
+
+        #blob-container canvas {
+            position: relative;
+            z-index: 2;
+        }
+
+        .blob-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .blob-glow.active {
+            opacity: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: #000;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes particle-float {
+            0% {
+                transform: translate(0, 0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .rarity-display {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 50px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.5s;
+        }
+
+        .rarity-display.visible {
+            opacity: 1;
+        }
+
+        .rarity-trait {
+            display: inline-block;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+
+        .rarity-percentage {
+            color: #000;
+            font-weight: 700;
+        }
+
+        .legendary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        .epic {
+            background: linear-gradient(45deg, #9400D3, #4B0082);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        .rare {
+            background: linear-gradient(45deg, #0099FF, #0066CC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+
+        .side-text {
+            position: absolute;
+            left: -120px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+            width: 100px;
+        }
+
+        .username-display {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            height: 20px;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .action-buttons.visible {
+            opacity: 1;
+        }
+
+        .x-button, .share-button {
+            padding: 16px 40px;
+            border: 2px solid #000;
+            background-color: transparent;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #000;
+            display: inline-block;
+        }
+
+        .x-button:hover, .share-button:hover {
+            background-color: #000;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .share-button {
+            background-color: #000;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .share-button:hover {
+            background-color: #1DA1F2;
+            border-color: #1DA1F2;
+        }
+
+        .share-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .share-button.loading::after {
+            content: ' ...';
+            animation: dots 1s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ' .'; }
+            40% { content: ' ..'; }
+            60%, 100% { content: ' ...'; }
+        }
+
+        .hype-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .warning-text {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .warning-text.visible {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #f5f5f5;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .modal-status {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0066ff;
+            margin-bottom: 20px;
+        }
+
+        .modal-progress {
+            width: 100%;
+            height: 4px;
+            background-color: #ddd;
+            border-radius: 2px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            background-color: #0066ff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .blob-preview {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 30px;
+            border: 3px solid #000;
+            border-radius: 10px;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blob-preview canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-button {
+            padding: 14px 30px;
+            border: 2px solid #000;
+            background-color: transparent;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 160px;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .modal-button.primary {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .modal-button.primary:hover {
+            background-color: #333;
+        }
+
+        .modal-button.secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .modal-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .side-text {
+                position: static;
+                transform: none;
+                text-align: center;
+                width: auto;
+                margin-bottom: 20px;
+            }
+
+            #blob-container {
+                width: 250px;
+                height: 250px;
+            }
+
+            .input-section {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .username-input {
+                width: 100%;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .x-button, .share-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        .protocol-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .hackathon-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .hackathon-badge:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-wrapper"></div>
+    <a href="https://hackathon.letsbonk.fun/" target="_blank" class="hackathon-badge">
+        LetsBonk Hackathon Project
+    </a>
+
+    <main>
+        <h1>$BLOB</h1>
+        <p class="tagline">Your Unique On-Chain Identity</p>
+        <p class="subtitle">Generate your one-of-a-kind Blob NFT tied to your X username. Each user gets ONE unique generation. Make it count.</p>
+        
+        <div class="input-section">
+            <input type="text" class="username-input" placeholder="Enter YOUR X username" id="usernameInput">
+            <button class="generate-button" id="generateButton" onclick="generateBlob()">MINT BLOB</button>
+        </div>
+        
+        <div class="warning-text" id="warningText"></div>
+        
+        <div style="position: relative;">
+            <p class="side-text">probably<br>nothing</p>
+            <div id="blob-container">
+                <div class="blob-glow" id="blobGlow"></div>
+            </div>
+        </div>
+        
+        <div class="username-display" id="usernameDisplay"></div>
+        
+        <div class="rarity-display" id="rarityDisplay">
+            <span class="rarity-trait" id="rarityTrait1"></span>
+            <span class="rarity-trait" id="rarityTrait2"></span>
+            <span class="rarity-trait" id="rarityTrait3"></span>
+        </div>
+        
+        <div class="action-buttons" id="actionButtons">
+            <a href="https://x.com/BlobGen" target="_blank" class="x-button">Follow $BLOB</a>
+            <button class="share-button" id="shareButton">Share on X</button>
+        </div>
+
+        <p class="hype-text">Join the revolution. Your Blob is your identity in the new economy. Backed by nothing. Worth everything.</p>
+    </main>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Share Blob on X</h2>
+            <p class="modal-subtitle">Ready to show off your unique blob? Download the image and attach it to your tweet for the full experience!</p>
+            
+            <p class="modal-status">Image ready for X!</p>
+            <div class="modal-progress">
+                <div class="modal-progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="blob-preview" id="blobPreview">
+                <!-- Canvas will be inserted here -->
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="downloadBlobImage()">Download Image</button>
+                <button class="modal-button primary" onclick="shareOnX()">Yes, Share!</button>
+                <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
+            </div>
+            
+            <p class="modal-info">Your blob image will be part of the tweet.</p>
+        </div>
+    </div>
+
+    <div class="protocol-badge">
+        Built on Blob Protocol
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Check localStorage for generated blobs
+        const generatedBlobs = JSON.parse(localStorage.getItem('generatedBlobs') || '{}');
+        const currentUser = localStorage.getItem('currentBlobUser');
+
+        // Three.js Blob Setup
+        let blob, geometry, material, originalPositions;
+        const container = document.getElementById('blob-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true, 
+            alpha: true 
+        });
+        
+        renderer.setSize(300, 300);
+        renderer.setClearColor(0x000000, 0);
+        container.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        camera.position.z = 3;
+
+        // Hash function to generate consistent values from username
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
+        }
+
+        // Generate pseudo-random number from seed
+        function seededRandom(seed) {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        }
+
+        // Noise function for organic movement
+        function noise(x, y, z) {
+            const X = Math.floor(x) & 255;
+            const Y = Math.floor(y) & 255;
+            const Z = Math.floor(z) & 255;
+            
+            return Math.sin(X * 12.9898 + Y * 78.233 + Z * 43.758) * 43758.5453 % 1;
+        }
+
+        let animationId;
+        let blobParams = {};
+        let currentBlobUsername = '';
+        let blobImageDataUrl = '';
+        let blobRarity = {};
+
+        // Background mouse tracking
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            document.body.style.setProperty('--mouse-x', `${x}%`);
+            document.body.style.setProperty('--mouse-y', `${y}%`);
+        });
+
+        function calculateRarity(hash) {
+            const rarity = {};
+            
+            // Calculate trait percentiles
+            const colorRarity = (seededRandom(hash) * 100);
+            const fluidityRarity = (seededRandom(hash * 2) * 100);
+            const sizeRarity = (seededRandom(hash * 3) * 100);
+            const glowRarity = (seededRandom(hash * 4) * 100);
+            
+            // Determine rarity tiers
+            rarity.color = {
+                value: colorRarity,
+                tier: colorRarity < 5 ? 'legendary' : colorRarity < 15 ? 'epic' : colorRarity < 30 ? 'rare' : 'common',
+                description: colorRarity < 5 ? 'Legendary Color' : colorRarity < 15 ? 'Epic Hue' : colorRarity < 30 ? 'Rare Shade' : 'Common Tone'
+            };
+            
+            rarity.fluidity = {
+                value: fluidityRarity,
+                tier: fluidityRarity < 10 ? 'legendary' : fluidityRarity < 25 ? 'epic' : fluidityRarity < 45 ? 'rare' : 'common',
+                description: `Top ${Math.round(fluidityRarity)}% for fluidity`
+            };
+            
+            rarity.size = {
+                value: sizeRarity,
+                tier: sizeRarity < 8 ? 'legendary' : sizeRarity < 20 ? 'epic' : sizeRarity < 40 ? 'rare' : 'common',
+                description: sizeRarity < 8 ? 'Legendary Size' : sizeRarity < 20 ? 'Epic Scale' : sizeRarity < 40 ? 'Rare Dimension' : 'Standard Size'
+            };
+            
+            rarity.hasGlow = glowRarity < 20;
+            rarity.overallRarity = (colorRarity + fluidityRarity + sizeRarity) / 3;
+            
+            return rarity;
+        }
+
+        function createParticles(container) {
+            const particleCount = 20;
+            
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // Random starting position around the blob
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const startX = Math.cos(angle) * 150 + 150;
+                    const startY = Math.sin(angle) * 150 + 150;
+                    
+                    particle.style.left = `${startX}px`;
+                    particle.style.top = `${startY}px`;
+                    
+                    // Random end position
+                    const tx = (Math.random() - 0.5) * 200;
+                    const ty = (Math.random() - 0.5) * 200;
+                    
+                    particle.style.setProperty('--tx', `${tx}px`);
+                    particle.style.setProperty('--ty', `${ty}px`);
+                    
+                    // Random color based on blob
+                    const hue = Math.random() * 360;
+                    particle.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
+                    
+                    particle.style.animation = 'particle-float 2s ease-out forwards';
+                    
+                    container.appendChild(particle);
+                    
+                    // Remove particle after animation
+                    setTimeout(() => particle.remove(), 2000);
+                }, i * 50);
+            }
+        }
+
+        function generateBlob() {
+            const username = document.getElementById('usernameInput').value.trim().toLowerCase();
+            const warningText = document.getElementById('warningText');
+            
+            if (!username) {
+                warningText.textContent = 'Enter your X username first!';
+                warningText.classList.add('visible');
+                return;
+            }
+
+            // Check if this username already generated a blob
+            if (generatedBlobs[username]) {
+                warningText.textContent = `@${username} already minted their Blob! Each user gets ONE unique generation.`;
+                warningText.classList.add('visible');
+                document.getElementById('usernameInput').classList.add('pulse');
+                setTimeout(() => {
+                    document.getElementById('usernameInput').classList.remove('pulse');
+                }, 2000);
+                return;
+            }
+
+            // Check if current user already generated a blob
+            if (currentUser && currentUser !== username) {
+                warningText.textContent = `You already minted a Blob as @${currentUser}! One Blob per user.`;
+                warningText.classList.add('visible');
+                return;
+            }
+
+            warningText.classList.remove('visible');
+            currentBlobUsername = username;
+
+            // Store this generation
+            generatedBlobs[username] = true;
+            localStorage.setItem('generatedBlobs', JSON.stringify(generatedBlobs));
+            localStorage.setItem('currentBlobUser', username);
+
+            // Show username
+            document.getElementById('usernameDisplay').textContent = `@${username}'s eternal Blob #${hashCode(username).toString().slice(0, 6)}`;
+
+            // Disable input and button
+            document.getElementById('usernameInput').disabled = true;
+            document.getElementById('generateButton').disabled = true;
+
+            // Clear previous blob
+            if (blob) {
+                scene.remove(blob);
+                geometry.dispose();
+                material.dispose();
+            }
+
+            // Cancel previous animation
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            // Generate deterministic parameters from username
+            const hash = hashCode(username);
+            const seed1 = seededRandom(hash);
+            const seed2 = seededRandom(hash * 2);
+            const seed3 = seededRandom(hash * 3);
+            const seed4 = seededRandom(hash * 4);
+            const seed5 = seededRandom(hash * 5);
+
+            // Calculate rarity
+            blobRarity = calculateRarity(hash);
+
+            // Blob parameters based on username with rarity influence
+            const sizeMultiplier = blobRarity.size.tier === 'legendary' ? 1.3 : 
+                                  blobRarity.size.tier === 'epic' ? 1.2 : 
+                                  blobRarity.size.tier === 'rare' ? 1.1 : 1.0;
+            
+            const fluidityMultiplier = blobRarity.fluidity.tier === 'legendary' ? 1.5 : 
+                                       blobRarity.fluidity.tier === 'epic' ? 1.3 : 
+                                       blobRarity.fluidity.tier === 'rare' ? 1.15 : 1.0;
+
+            blobParams = {
+                noiseScale: (seed1 * 0.3 + 0.2) * fluidityMultiplier,
+                timeScale: (seed2 * 0.0005 + 0.0003) * fluidityMultiplier,
+                amplitude: (seed3 * 0.3 + 0.2) * fluidityMultiplier,
+                rotationSpeed: {
+                    x: seed4 * 0.006 + 0.001,
+                    y: seed5 * 0.006 + 0.001
+                },
+                segments: Math.floor(seed1 * 16) + 24,
+                size: sizeMultiplier
+            };
+
+            // Create new geometry with size multiplier
+            geometry = new THREE.SphereGeometry(1 * blobParams.size, blobParams.segments, blobParams.segments);
+            const positions = geometry.attributes.position.array;
+            originalPositions = new Float32Array(positions);
+
+            // Create material with color based on username
+            const hue = seed1;
+            const saturation = blobRarity.color.tier === 'legendary' ? 0.9 : 
+                              blobRarity.color.tier === 'epic' ? 0.8 : 
+                              blobRarity.color.tier === 'rare' ? 0.7 : 
+                              seed2 * 0.4 + 0.5;
+            const lightness = seed3 * 0.2 + 0.4;
+
+            material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color().setHSL(hue, saturation, lightness),
+                shininess: blobRarity.color.tier === 'legendary' ? 200 : 100,
+                specular: blobRarity.color.tier === 'legendary' ? 0x444444 : 0x222222,
+                emissive: blobRarity.hasGlow ? new THREE.Color().setHSL(hue, saturation, lightness * 0.3) : 0x000000,
+                emissiveIntensity: blobRarity.hasGlow ? 0.3 : 0
+            });
+
+            blob = new THREE.Mesh(geometry, material);
+            scene.add(blob);
+
+            // Add glow effect for rare blobs
+            if (blobRarity.hasGlow) {
+                const glowElement = document.getElementById('blobGlow');
+                const glowColor = `hsl(${hue * 360}, ${saturation * 100}%, ${lightness * 100}%)`;
+                glowElement.style.background = `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`;
+                glowElement.style.filter = 'blur(20px)';
+                glowElement.classList.add('active');
+            }
+
+            // Create particle effects
+            createParticles(container);
+
+            // Show container and rarity info
+            container.classList.add('visible');
+            
+            // Display rarity traits
+            setTimeout(() => {
+                const rarityDisplay = document.getElementById('rarityDisplay');
+                
+                document.getElementById('rarityTrait1').innerHTML = 
+                    `<span class="${blobRarity.color.tier}">${blobRarity.color.description}</span>`;
+                
+                document.getElementById('rarityTrait2').innerHTML = 
+                    `<span class="${blobRarity.fluidity.tier}">${blobRarity.fluidity.description}!</span>`;
+                
+                document.getElementById('rarityTrait3').innerHTML = 
+                    `<span class="${blobRarity.size.tier}">${blobRarity.size.description}</span>`;
+                
+                rarityDisplay.classList.add('visible');
+            }, 1000);
+            // Show action buttons
+            document.getElementById('actionButtons').classList.add('visible');
+
+            // Start animation
+            animate();
+        }
+
+        // Animation
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            
+            if (!blob) return;
+
+            const time = Date.now() * blobParams.timeScale;
+            const positions = geometry.attributes.position.array;
+            
+            // Update vertex positions for blob effect
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = originalPositions[i];
+                const y = originalPositions[i + 1];
+                const z = originalPositions[i + 2];
+                
+                const noiseValue = noise(
+                    x * blobParams.noiseScale + time,
+                    y * blobParams.noiseScale + time,
+                    z * blobParams.noiseScale + time
+                );
+                
+                const scale = 1 + noiseValue * blobParams.amplitude;
+                
+                positions[i] = x * scale;
+                positions[i + 1] = y * scale;
+                positions[i + 2] = z * scale;
+            }
+            
+            geometry.attributes.position.needsUpdate = true;
+            geometry.computeVertexNormals();
+            
+            // Rotate blob
+            blob.rotation.x += blobParams.rotationSpeed.x;
+            blob.rotation.y += blobParams.rotationSpeed.y;
+            
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const width = container.offsetWidth;
+            const height = container.offsetHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+
+        // Handle enter key
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateBlob();
+            }
+        });
+
+        // Share on X functionality
+        document.getElementById('shareButton').addEventListener('click', async () => {
+            if (!currentBlobUsername) return;
+            
+            const shareButton = document.getElementById('shareButton');
+            shareButton.disabled = true;
+            
+            // Show modal
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('active');
+            
+            // Create a preview canvas
+            const previewCanvas = document.createElement('canvas');
+            previewCanvas.width = 300;
+            previewCanvas.height = 300;
+            const previewCtx = previewCanvas.getContext('2d');
+            
+            // Copy the current blob frame
+            renderer.render(scene, camera);
+            previewCtx.drawImage(renderer.domElement, 0, 0);
+            
+            // Add to preview container
+            const previewContainer = document.getElementById('blobPreview');
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(previewCanvas);
+            
+            // Store the image data
+            blobImageDataUrl = previewCanvas.toDataURL('image/png');
+            
+            // Animate progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = '100%';
+            
+            shareButton.disabled = false;
+        });
+
+        function downloadBlobImage() {
+            if (!blobImageDataUrl || !currentBlobUsername) return;
+            
+            // Create download link
+            const a = document.createElement('a');
+            a.href = blobImageDataUrl;
+            a.download = `blob_${currentBlobUsername}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function shareOnX() {
+            if (!currentBlobUsername) return;
+            
+            // Download image first
+            downloadBlobImage();
+            
+            // Open X with tweet
+            const blobId = hashCode(currentBlobUsername).toString().slice(0, 6);
+            const blobEmojis = ['🫧', '🔮', '💫', '🌊', '🎯', '🪐', '🌀', '⚡'];
+            const emoji = blobEmojis[parseInt(blobId[0], 16) % blobEmojis.length];
+            
+            const tweetText = `Just claimed my $BLOB #${blobId} ${emoji}\n\nProbably nothing, but definitely something. Your X username = One Eternal Blob.\n\nJoin the blobverse 👇\n`;
+            const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(window.location.href)}`;
+            
+            window.open(tweetUrl, '_blank');
+            
+            // Close modal after a short delay
+            setTimeout(() => {
+                closeModal();
+            }, 1000);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.remove('active');
+            
+            // Reset progress bar
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = '0%';
+        }
+
+        // Logo click shows instructions
+        document.querySelector('.logo-wrapper').addEventListener('click', () => {
+            alert('$BLOB Protocol v1.0\n\nRules:\n- One Blob per X username\n- Each Blob is unique and deterministic\n- Your Blob is your identity\n- Blobs are forever\n\nThis is probably nothing.');
+        });
+
+        // Check if returning user
+        if (currentUser) {
+            document.getElementById('usernameInput').value = currentUser;
+            document.getElementById('usernameInput').disabled = true;
+            const warningText = document.getElementById('warningText');
+            warningText.textContent = `Welcome back @${currentUser}! You already minted your Blob.`;
+            warningText.classList.add('visible');
+        }
+    </script>
+</body>
+</html>
