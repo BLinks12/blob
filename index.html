@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$BLOB - Your Unique On-Chain Identity</title>
+    <title>$AURA - Your Unique On-Chain Identity</title>
     <style>
         * {
             margin: 0;
@@ -153,7 +153,7 @@
             }
         }
 
-        #blob-container {
+        #aura-container {
             width: 300px;
             height: 300px;
             position: relative;
@@ -162,16 +162,16 @@
             transition: opacity 0.5s ease;
         }
 
-        #blob-container.visible {
+        #aura-container.visible {
             opacity: 1;
         }
 
-        #blob-container canvas {
+        #aura-container canvas {
             position: relative;
             z-index: 2;
         }
 
-        .blob-glow {
+        .aura-glow {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -185,7 +185,7 @@
             z-index: 1;
         }
 
-        .blob-glow.active {
+        .aura-glow.active {
             opacity: 1;
         }
 
@@ -432,7 +432,7 @@
             transition: width 0.3s ease;
         }
 
-        .blob-preview {
+        .aura-preview {
             width: 250px;
             height: 250px;
             margin: 0 auto 30px;
@@ -443,7 +443,7 @@
             overflow: hidden;
         }
 
-        .blob-preview canvas {
+        .aura-preview canvas {
             width: 100%;
             height: 100%;
         }
@@ -499,7 +499,7 @@
                 margin-bottom: 20px;
             }
 
-            #blob-container {
+            #aura-container {
                 width: 250px;
                 height: 250px;
             }
@@ -564,21 +564,21 @@
     <div class="logo-wrapper"></div>
 
     <main>
-        <h1>$BLOB</h1>
+        <h1>$AURA</h1>
         <p class="tagline">Your Unique On-Chain Identity</p>
-        <p class="subtitle">Generate your one-of-a-kind Blob tied to your X username. Each user gets ONE unique generation. Make it count.</p>
+        <p class="subtitle">Generate your one-of-a-kind Aura tied to your X username. Each user gets ONE unique generation. Make it count.</p>
         
         <div class="input-section">
             <input type="text" class="username-input" placeholder="Enter YOUR X username" id="usernameInput">
-            <button class="generate-button" id="generateButton" onclick="generateBlob()">MINT BLOB</button>
+            <button class="generate-button" id="generateButton" onclick="generateAura()">MINT AURA</button>
         </div>
         
         <div class="warning-text" id="warningText"></div>
         
         <div style="position: relative;">
             <p class="side-text">probably<br>nothing</p>
-            <div id="blob-container">
-                <div class="blob-glow" id="blobGlow"></div>
+            <div id="aura-container">
+                <div class="aura-glow" id="auraGlow"></div>
             </div>
         </div>
         
@@ -591,51 +591,51 @@
         </div>
         
         <div class="action-buttons" id="actionButtons">
-            <a href="https://x.com/BlobGen" target="_blank" class="x-button">Follow $BLOB</a>
+            <a href="https://x.com/AuraGen" target="_blank" class="x-button">Follow $AURA</a>
             <button class="share-button" id="shareButton">Share on X</button>
         </div>
 
-        <p class="hype-text">Join the revolution. Your Blob is your identity in the new economy. Backed by nothing. Worth everything.</p>
+        <p class="hype-text">Join the revolution. Your Aura is your identity in the new economy. Backed by nothing. Worth everything.</p>
     </main>
 
     <!-- Share Modal -->
     <div class="modal-overlay" id="shareModal">
         <div class="modal-content">
-            <h2 class="modal-title">Share Blob on X</h2>
-            <p class="modal-subtitle">Ready to show off your unique blob? Download the image and attach it to your tweet for the full experience!</p>
+            <h2 class="modal-title">Share Aura on X</h2>
+            <p class="modal-subtitle">Ready to show off your unique aura? Download the image and attach it to your tweet for the full experience!</p>
             
             <p class="modal-status">Image ready for X!</p>
             <div class="modal-progress">
                 <div class="modal-progress-bar" id="progressBar"></div>
             </div>
             
-            <div class="blob-preview" id="blobPreview">
+            <div class="aura-preview" id="auraPreview">
                 <!-- Canvas will be inserted here -->
             </div>
             
             <div class="modal-buttons">
-                <button class="modal-button secondary" onclick="downloadBlobImage()">Download Image</button>
+                <button class="modal-button secondary" onclick="downloadAuraImage()">Download Image</button>
                 <button class="modal-button primary" onclick="shareOnX()">Yes, Share!</button>
                 <button class="modal-button secondary" onclick="closeModal()">Cancel</button>
             </div>
             
-            <p class="modal-info">Your blob image will be part of the tweet.</p>
+            <p class="modal-info">Your aura image will be part of the tweet.</p>
         </div>
     </div>
 
     <div class="protocol-badge">
-        Built on Blob Protocol
+        Built on Aura Protocol
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Check localStorage for generated blobs
-        const generatedBlobs = JSON.parse(localStorage.getItem('generatedBlobs') || '{}');
-        const currentUser = localStorage.getItem('currentBlobUser');
+        // Check localStorage for generated auras
+        const generatedAuras = JSON.parse(localStorage.getItem('generatedAuras') || '{}');
+        const currentUser = localStorage.getItem('currentAuraUser');
 
-        // Three.js Blob Setup
-        let blob, geometry, material, originalPositions;
-        const container = document.getElementById('blob-container');
+        // Three.js Aura Setup
+        let aura, geometry, material, originalPositions;
+        const container = document.getElementById('aura-container');
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ 
@@ -684,10 +684,10 @@
         }
 
         let animationId;
-        let blobParams = {};
-        let currentBlobUsername = '';
-        let blobImageDataUrl = '';
-        let blobRarity = {};
+        let auraParams = {};
+        let currentAuraUsername = '';
+        let auraImageDataUrl = '';
+        let auraRarity = {};
 
         // Background mouse tracking
         document.addEventListener('mousemove', (e) => {
@@ -739,7 +739,7 @@
                     const particle = document.createElement('div');
                     particle.className = 'particle';
                     
-                    // Random starting position around the blob
+                    // Random starting position around the aura
                     const angle = (Math.PI * 2 * i) / particleCount;
                     const startX = Math.cos(angle) * 150 + 150;
                     const startY = Math.sin(angle) * 150 + 150;
@@ -754,7 +754,7 @@
                     particle.style.setProperty('--tx', `${tx}px`);
                     particle.style.setProperty('--ty', `${ty}px`);
                     
-                    // Random color based on blob
+                    // Random color based on aura
                     const hue = Math.random() * 360;
                     particle.style.backgroundColor = `hsl(${hue}, 70%, 50%)`;
                     
@@ -768,7 +768,7 @@
             }
         }
 
-        function generateBlob() {
+        function generateAura() {
             const username = document.getElementById('usernameInput').value.trim().toLowerCase();
             const warningText = document.getElementById('warningText');
             const generateButton = document.getElementById('generateButton');
@@ -779,9 +779,9 @@
                 return;
             }
 
-            // Check if this username already generated a blob
-            if (generatedBlobs[username]) {
-                warningText.textContent = `@${username} already minted their Blob! Each user gets ONE unique generation.`;
+            // Check if this username already generated an aura
+            if (generatedAuras[username]) {
+                warningText.textContent = `@${username} already minted their Aura! Each user gets ONE unique generation.`;
                 warningText.classList.add('visible');
                 document.getElementById('usernameInput').classList.add('pulse');
                 setTimeout(() => {
@@ -790,9 +790,9 @@
                 return;
             }
 
-            // Check if current user already generated a blob
+            // Check if current user already generated an aura
             if (currentUser && currentUser !== username) {
-                warningText.textContent = `You already minted a Blob as @${currentUser}! One Blob per user.`;
+                warningText.textContent = `You already minted an Aura as @${currentUser}! One Aura per user.`;
                 warningText.classList.add('visible');
                 return;
             }
@@ -804,24 +804,24 @@
             // Simulate loading delay
             setTimeout(() => {
                 warningText.classList.remove('visible');
-                currentBlobUsername = username;
+                currentAuraUsername = username;
 
                 // Store this generation
-                generatedBlobs[username] = true;
-                localStorage.setItem('generatedBlobs', JSON.stringify(generatedBlobs));
-                localStorage.setItem('currentBlobUser', username);
+                generatedAuras[username] = true;
+                localStorage.setItem('generatedAuras', JSON.stringify(generatedAuras));
+                localStorage.setItem('currentAuraUser', username);
 
                 // Show username
-                document.getElementById('usernameDisplay').textContent = `@${username}'s eternal Blob #${hashCode(username).toString().slice(0, 6)}`;
+                document.getElementById('usernameDisplay').textContent = `@${username}'s eternal Aura #${hashCode(username).toString().slice(0, 6)}`;
 
                 // Disable input and button
                 document.getElementById('usernameInput').disabled = true;
                 generateButton.disabled = true;
                 generateButton.classList.remove('loading');
 
-                // Clear previous blob
-                if (blob) {
-                    scene.remove(blob);
+                // Clear previous aura
+                if (aura) {
+                    scene.remove(aura);
                     geometry.dispose();
                     material.dispose();
                 }
@@ -840,18 +840,18 @@
                 const seed5 = seededRandom(hash * 5);
 
                 // Calculate rarity
-                blobRarity = calculateRarity(hash);
+                auraRarity = calculateRarity(hash);
 
-                // Blob parameters based on username with rarity influence
-                const sizeMultiplier = blobRarity.size.tier === 'legendary' ? 1.3 : 
-                                      blobRarity.size.tier === 'epic' ? 1.2 : 
-                                      blobRarity.size.tier === 'rare' ? 1.1 : 1.0;
+                // Aura parameters based on username with rarity influence
+                const sizeMultiplier = auraRarity.size.tier === 'legendary' ? 1.3 : 
+                                      auraRarity.size.tier === 'epic' ? 1.2 : 
+                                      auraRarity.size.tier === 'rare' ? 1.1 : 1.0;
                 
-                const fluidityMultiplier = blobRarity.fluidity.tier === 'legendary' ? 1.5 : 
-                                           blobRarity.fluidity.tier === 'epic' ? 1.3 : 
-                                           blobRarity.fluidity.tier === 'rare' ? 1.15 : 1.0;
+                const fluidityMultiplier = auraRarity.fluidity.tier === 'legendary' ? 1.5 : 
+                                           auraRarity.fluidity.tier === 'epic' ? 1.3 : 
+                                           auraRarity.fluidity.tier === 'rare' ? 1.15 : 1.0;
 
-                blobParams = {
+                auraParams = {
                     noiseScale: (seed1 * 0.3 + 0.2) * fluidityMultiplier,
                     timeScale: (seed2 * 0.0005 + 0.0003) * fluidityMultiplier,
                     amplitude: (seed3 * 0.3 + 0.2) * fluidityMultiplier,
@@ -864,32 +864,32 @@
                 };
 
                 // Create new geometry with size multiplier
-                geometry = new THREE.SphereGeometry(1 * blobParams.size, blobParams.segments, blobParams.segments);
+                geometry = new THREE.SphereGeometry(1 * auraParams.size, auraParams.segments, auraParams.segments);
                 const positions = geometry.attributes.position.array;
                 originalPositions = new Float32Array(positions);
 
                 // Create material with color based on username
                 const hue = seed1;
-                const saturation = blobRarity.color.tier === 'legendary' ? 0.9 : 
-                                  blobRarity.color.tier === 'epic' ? 0.8 : 
-                                  blobRarity.color.tier === 'rare' ? 0.7 : 
+                const saturation = auraRarity.color.tier === 'legendary' ? 0.9 : 
+                                  auraRarity.color.tier === 'epic' ? 0.8 : 
+                                  auraRarity.color.tier === 'rare' ? 0.7 : 
                                   seed2 * 0.4 + 0.5;
                 const lightness = seed3 * 0.2 + 0.4;
 
                 material = new THREE.MeshPhongMaterial({
                     color: new THREE.Color().setHSL(hue, saturation, lightness),
-                    shininess: blobRarity.color.tier === 'legendary' ? 200 : 100,
-                    specular: blobRarity.color.tier === 'legendary' ? 0x444444 : 0x222222,
-                    emissive: blobRarity.hasGlow ? new THREE.Color().setHSL(hue, saturation, lightness * 0.3) : 0x000000,
-                    emissiveIntensity: blobRarity.hasGlow ? 0.3 : 0
+                    shininess: auraRarity.color.tier === 'legendary' ? 200 : 100,
+                    specular: auraRarity.color.tier === 'legendary' ? 0x444444 : 0x222222,
+                    emissive: auraRarity.hasGlow ? new THREE.Color().setHSL(hue, saturation, lightness * 0.3) : 0x000000,
+                    emissiveIntensity: auraRarity.hasGlow ? 0.3 : 0
                 });
 
-                blob = new THREE.Mesh(geometry, material);
-                scene.add(blob);
+                aura = new THREE.Mesh(geometry, material);
+                scene.add(aura);
 
-                // Add glow effect for rare blobs
-                if (blobRarity.hasGlow) {
-                    const glowElement = document.getElementById('blobGlow');
+                // Add glow effect for rare auras
+                if (auraRarity.hasGlow) {
+                    const glowElement = document.getElementById('auraGlow');
                     const glowColor = `hsl(${hue * 360}, ${saturation * 100}%, ${lightness * 100}%)`;
                     glowElement.style.background = `radial-gradient(circle, ${glowColor}40 0%, transparent 70%)`;
                     glowElement.style.filter = 'blur(20px)';
@@ -907,13 +907,13 @@
                     const rarityDisplay = document.getElementById('rarityDisplay');
                     
                     document.getElementById('rarityTrait1').innerHTML = 
-                        `<span class="${blobRarity.color.tier}">${blobRarity.color.description}</span>`;
+                        `<span class="${auraRarity.color.tier}">${auraRarity.color.description}</span>`;
                     
                     document.getElementById('rarityTrait2').innerHTML = 
-                        `<span class="${blobRarity.fluidity.tier}">${blobRarity.fluidity.description}!</span>`;
+                        `<span class="${auraRarity.fluidity.tier}">${auraRarity.fluidity.description}!</span>`;
                     
                     document.getElementById('rarityTrait3').innerHTML = 
-                        `<span class="${blobRarity.size.tier}">${blobRarity.size.description}</span>`;
+                        `<span class="${auraRarity.size.tier}">${auraRarity.size.description}</span>`;
                     
                     rarityDisplay.classList.add('visible');
                 }, 1000);
@@ -929,24 +929,24 @@
         function animate() {
             animationId = requestAnimationFrame(animate);
             
-            if (!blob) return;
+            if (!aura) return;
 
-            const time = Date.now() * blobParams.timeScale;
+            const time = Date.now() * auraParams.timeScale;
             const positions = geometry.attributes.position.array;
             
-            // Update vertex positions for blob effect
+            // Update vertex positions for aura effect
             for (let i = 0; i < positions.length; i += 3) {
                 const x = originalPositions[i];
                 const y = originalPositions[i + 1];
                 const z = originalPositions[i + 2];
                 
                 const noiseValue = noise(
-                    x * blobParams.noiseScale + time,
-                    y * blobParams.noiseScale + time,
-                    z * blobParams.noiseScale + time
+                    x * auraParams.noiseScale + time,
+                    y * auraParams.noiseScale + time,
+                    z * auraParams.noiseScale + time
                 );
                 
-                const scale = 1 + noiseValue * blobParams.amplitude;
+                const scale = 1 + noiseValue * auraParams.amplitude;
                 
                 positions[i] = x * scale;
                 positions[i + 1] = y * scale;
@@ -956,9 +956,9 @@
             geometry.attributes.position.needsUpdate = true;
             geometry.computeVertexNormals();
             
-            // Rotate blob
-            blob.rotation.x += blobParams.rotationSpeed.x;
-            blob.rotation.y += blobParams.rotationSpeed.y;
+            // Rotate aura
+            aura.rotation.x += auraParams.rotationSpeed.x;
+            aura.rotation.y += auraParams.rotationSpeed.y;
             
             renderer.render(scene, camera);
         }
@@ -975,13 +975,13 @@
         // Handle enter key
         document.getElementById('usernameInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                generateBlob();
+                generateAura();
             }
         });
 
         // Share on X functionality
         document.getElementById('shareButton').addEventListener('click', async () => {
-            if (!currentBlobUsername) return;
+            if (!currentAuraUsername) return;
             
             const shareButton = document.getElementById('shareButton');
             shareButton.disabled = true;
@@ -996,17 +996,17 @@
             previewCanvas.height = 300;
             const previewCtx = previewCanvas.getContext('2d');
             
-            // Copy the current blob frame
+            // Copy the current aura frame
             renderer.render(scene, camera);
             previewCtx.drawImage(renderer.domElement, 0, 0);
             
             // Add to preview container
-            const previewContainer = document.getElementById('blobPreview');
+            const previewContainer = document.getElementById('auraPreview');
             previewContainer.innerHTML = '';
             previewContainer.appendChild(previewCanvas);
             
             // Store the image data
-            blobImageDataUrl = previewCanvas.toDataURL('image/png');
+            auraImageDataUrl = previewCanvas.toDataURL('image/png');
             
             // Animate progress bar
             const progressBar = document.getElementById('progressBar');
@@ -1015,30 +1015,30 @@
             shareButton.disabled = false;
         });
 
-        function downloadBlobImage() {
-            if (!blobImageDataUrl || !currentBlobUsername) return;
+        function downloadAuraImage() {
+            if (!auraImageDataUrl || !currentAuraUsername) return;
             
             // Create download link
             const a = document.createElement('a');
-            a.href = blobImageDataUrl;
-            a.download = `blob_${currentBlobUsername}.png`;
+            a.href = auraImageDataUrl;
+            a.download = `aura_${currentAuraUsername}.png`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
         function shareOnX() {
-            if (!currentBlobUsername) return;
+            if (!currentAuraUsername) return;
             
             // Download image first
-            downloadBlobImage();
+            downloadAuraImage();
             
             // Open X with tweet
-            const blobId = hashCode(currentBlobUsername).toString().slice(0, 6);
-            const blobEmojis = ['🫧', '🔮', '💫', '🌊', '🎯', '🪐', '🌀', '⚡'];
-            const emoji = blobEmojis[parseInt(blobId[0], 16) % blobEmojis.length];
+            const auraId = hashCode(currentAuraUsername).toString().slice(0, 6);
+            const auraEmojis = ['🫧', '🔮', '💫', '🌊', '🎯', '🪐', '🌀', '⚡'];
+            const emoji = auraEmojis[parseInt(auraId[0], 16) % auraEmojis.length];
             
-            const tweetText = `Just claimed my $BLOB #${blobId} ${emoji}\n\nProbably nothing, but definitely something. Your X username = One Eternal Blob.\n\nJoin the blobverse 👇\n`;
+            const tweetText = `Just claimed my $AURA #${auraId} ${emoji}\n\nProbably nothing, but definitely something. Your X username = One Eternal Aura.\n\nJoin the auraverse 👇\n`;
             const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(window.location.href)}`;
             
             window.open(tweetUrl, '_blank');
@@ -1060,7 +1060,7 @@
 
         // Logo click shows instructions
         document.querySelector('.logo-wrapper').addEventListener('click', () => {
-            alert('$BLOB Protocol v1.0\n\nRules:\n- One Blob per X username\n- Each Blob is unique and deterministic\n- Your Blob is your identity\n- Blobs are forever\n\nThis is probably nothing.');
+            alert('$AURA Protocol v1.0\n\nRules:\n- One Aura per X username\n- Each Aura is unique and deterministic\n- Your Aura is your identity\n- Auras are forever\n\nThis is probably nothing.');
         });
 
         // Check if returning user
@@ -1068,7 +1068,7 @@
             document.getElementById('usernameInput').value = currentUser;
             document.getElementById('usernameInput').disabled = true;
             const warningText = document.getElementById('warningText');
-            warningText.textContent = `Welcome back @${currentUser}! You already minted your Blob.`;
+            warningText.textContent = `Welcome back @${currentUser}! You already minted your Aura.`;
             warningText.classList.add('visible');
         }
     </script>
